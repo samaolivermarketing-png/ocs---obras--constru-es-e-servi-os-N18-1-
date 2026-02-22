@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      /**
+       * Error Mitigation Script
+       * Prevents common environment-related errors in sandboxed previews.
+       */
+      (function() {
+        // 1. Handle MetaMask / Web3 injection errors
+        // We define a more complete mock to satisfy libraries that check for MetaMask
+        if (typeof window !== 'undefined') {
+          const noop = () => {};
+          const mockEthereum = {
+            isMetaMask: true,
+            request: (args) => {
+              console.log('Mock Ethereum Request:', args?.method);
+              if (args?.method === 'eth_accounts' || args?.method === 'eth_requestAccounts') {
+                return Promise.resolve([]);
+              }
+              return Promise.resolve();
+            },
+            on: noop,
+            removeListener: noop,
+            autoRefreshOnNetworkChange: false,
+            enable: () => Promise.resolve([]),
+            isConnected: () => true,
+            networkVersion: '1',
+            chainId: '0x1',
+            selectedAddress: null
+          };
+
+          if (!window.ethereum) {
+            window.ethereum = mockEthereum;
+          }
+          
+          if (!window.web3) {
+            window.web3 = { currentProvider: window.ethereum };
+          }
+        }
+
+        // 2. Handle read-only 'fetch' property errors
+        try {
+          const target = window;
+          const prop = 'fetch';
+          const descriptor = Object.getOwnPropertyDescriptor(target, prop);
+          if (descriptor && !descriptor.set && descriptor.configurable) {
+            const originalFetch = target[prop];
+            Object.defineProperty(target, prop, {
+              get: () => originalFetch,
+              set: () => { /* Prevent TypeError: Cannot set property fetch */ },
+              enumerable: true,
+              configurable: true
+            });
+          }
+        } catch (e) {}
+
+        // 3. Suppress specific MetaMask console errors if possible
+        const originalError = console.error;
+        console.error = function(...args) {
+          const msg = args[0];
+          if (typeof msg === 'string' && (msg.includes('MetaMask') || msg.includes('ethereum'))) {
+            return;
+          }
+          originalError.apply(console, args);
+        };
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OCS - Obras, Construções e Serviços</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

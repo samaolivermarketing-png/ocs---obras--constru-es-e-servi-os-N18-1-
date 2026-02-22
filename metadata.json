@@ -1,0 +1,7 @@
+{
+  "name": "OCS - Obras, Construções e Serviços",
+  "description": "Especialista em concretagem de lajes, pisos e fundações em Salvador e região. Concreto usinado com acompanhamento técnico e entrega rápida.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
